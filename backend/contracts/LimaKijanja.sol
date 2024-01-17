@@ -10,19 +10,25 @@ contract LimaKijanja {
         string email;
         string phoneNumber;
         string location;
-        address walletAddress;
-    }   
+        address payable walletAddress;
+    }  
+
+    struct LoginInfo{
+        address userAddress;
+        string userType;
+    }
 
     struct Product {
         string productName;
         string productDescription;
         uint256 kilograms;
         uint256 price;
-        address owner;
+        address payable owner;
         string tag;
     }
 
     struct Price {
+        string productName;
         uint256 min_Price;
         uint256 max_Price;
     }
@@ -33,7 +39,7 @@ contract LimaKijanja {
         uint256 timestamp;
     }
 
-    Price[] public productPrices;
+    Price[] public productPricesArray;
     Product[] public productrArray;
     User[] public userArray;
     TransactionRecord[] public transactionRecords;
@@ -42,6 +48,8 @@ contract LimaKijanja {
     mapping (string => Price) public productPricemapping;
     mapping (address => Product) public Productsmapping;
     mapping (address => TransactionRecord[]) public userTransactionsmapping;
+    mapping (address => LoginInfo) loginmapping;
+    mapping (address => User) userInfoMapping;
 
     event TransactionEvent(address indexed user, string action, string details);
 
@@ -66,7 +74,8 @@ contract LimaKijanja {
     }
 
     constructor(){
-        i_owner=msg.sender;
+        i_owner = msg.sender;
+        loginmapping[i_owner].userType= "admin";
     }
 
     function postProduct(
@@ -85,7 +94,7 @@ contract LimaKijanja {
             productDescription: _productDescription,
             kilograms: _kilograms,
             price: _price,
-            owner: msg.sender,
+            owner: payable(msg.sender),
             tag: _tag
         });
         productrArray.push(myproduct);
@@ -103,7 +112,7 @@ contract LimaKijanja {
         string memory _email,
         string memory _phoneNumber,
         string memory _location,
-        address _walletAddress
+        address payable _walletAddress
     ) public onlyOwner{
         User memory newUser  = User({
             name : _name,
@@ -113,23 +122,40 @@ contract LimaKijanja {
             walletAddress : _walletAddress
         });
         userArray.push(newUser);
+        userInfoMapping[_walletAddress] = newUser;
+        loginmapping[_walletAddress].userType = "user";
         recordTransaction(msg.sender, "Add User", _name);
     }
+
+    function getUserInfo(address _userAddress) public view returns ( User memory){
+            return userInfoMapping[_userAddress];
+        }
+
+
 
     function setPrice (
         uint256 _minPrice,
         uint256 _maxPrice,
         string memory _productName
-    ) public onlyOwner{
-        Price memory prodPrice = Price ({
-            min_Price: _minPrice,
-            max_Price : _maxPrice
-        });
+    ) public onlyOwner {
+        Price storage prodPrice = productPricemapping[_productName];
 
-        productPricemapping[_productName] = prodPrice;
-        productPrices.push(prodPrice);
-        recordTransaction(msg.sender, "Set Price", _productName);
+        if (prodPrice.min_Price == 0 && prodPrice.max_Price == 0) {
+        // The product doesn't have a price, so create a new entry
+        productPricemapping[_productName] = Price({
+            productName: _productName,
+            min_Price: _minPrice,
+            max_Price: _maxPrice
+        });
+        } else {
+        // Update the existing entry
+        prodPrice.min_Price = _minPrice;
+        prodPrice.max_Price = _maxPrice;
+        }
+
+    recordTransaction(msg.sender, "Set Price", _productName);
     }
+
 
     function buyProduct(
     address payable  _owner,
@@ -151,15 +177,24 @@ contract LimaKijanja {
 
     // Calculate the total cost for buying the product
     uint256 totalPrice = _kilograms * Productsmapping[_owner].price;
+    //returnTotalPrice(totalPrice);
+    //return totalPrice;
+
     require(totalPrice >= _kilograms * Productsmapping[_owner].price, "Insufficient funds");
-
-
     // Transfer the total price from the buyer's address to the owner's address
     _owner.transfer(totalPrice);
 
     // Record the transaction
     recordTransaction(msg.sender, "Buy Product", Productsmapping[_owner].productName);
     }
+
+function returnTotalPrice(address _owner, uint256 _kilograms) public view returns (uint256) {
+    // require(_kilograms <= Productsmapping[_owner].kilograms, "Invalid amount to buy");
+    // require(_owner != address(0), "Invalid recipient address");
+
+    uint256 totalPrice = _kilograms * Productsmapping[_owner].price;
+    return totalPrice;
+}
 
 
     function recordTransaction(
@@ -186,11 +221,19 @@ contract LimaKijanja {
         return transactionRecords;
     }
 
-    function Login() public view returns (string memory) {
-        return (msg.sender == i_owner) ? "admin" : "user";        
+    function getAllUsers() public view returns(User[] memory) {
+        return userArray;
     }
 
-    function logout() external {
-        //loggedInUser = address(0);
-    }
+    function getPricePerProduct(string memory _product) public view returns (Price memory) {
+    return productPricemapping[_product];
 }
+
+      function Login(address _userAddress) public view returns (string memory) {
+            return loginmapping[_userAddress].userType;
+        }
+
+    function logout() external {
+        
+    }
+} 
