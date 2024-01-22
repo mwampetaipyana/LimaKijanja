@@ -1,18 +1,33 @@
 <script setup>
     import { ethers } from "ethers";
-    import { ref } from "vue";
+    import { ref, onMounted, watch } from "vue";
     import { useRoute, useRouter } from "vue-router";
     import { getSignerContract,setState,resetState, getViewerContract } from '../../utils';
+
     const newProductModelOpen = ref(false);
     const editDetailsModelOpen = ref(false)
+
+    const loggedinUser = ref([])
+    const location = ref({region:'',country:''}) 
+
+    onMounted( async () => {
+        getUserInfo()
+    })
+
+    const getUserInfo =async ()=>{
+        const { signer } = await getSignerContract()
+        const {contract} = await getViewerContract()
+
+        const signerAddress = await signer.getAddress();
+        loggedinUser.value = await contract.getUserInfo(signerAddress);   
+        [location.value.region, location.value.country] = loggedinUser.value.location.split(", ");
+    }
+ 
 
     const toggleNewProductModel = ()=>{
         newProductModelOpen.value = !newProductModelOpen.value; 
     }
-    const openEditDetailsModel = ()=>{
-        editDetailsModelOpen.value = !editDetailsModelOpen.value;
-    }
-
+ 
     const selectedRoute = ref('/mydeals');
     const router = useRouter();
 
@@ -33,8 +48,26 @@
         amount.value = ''
         price.value = ''
     }
+
+    const setPrice = ref({min:'',max:''})
+
+    const getProductPrice =async ()=>{
+        const {contract} = await getViewerContract()
+        const price = await contract.getPricePerProduct(productType.value);
+        setPrice.value.min = ethers.utils.formatEther(price.min_Price).toString()
+        setPrice.value.max = ethers.utils.formatEther(price.max_Price).toString()
+
+     
+    }
+
+    watch(productType, () => getProductPrice())
    
 const addProduct = async ()=>{
+    if( Number(price.value) < Number(setPrice.value.min) || Number(price.value) > Number(setPrice.value.max)){
+        alert("ADHERE TO THE SET PRICE RANGE !")
+        return
+    }
+
     let location = region.value +", "+ country.value;
     const { contract  } = await getSignerContract()
     contract.postProduct(productType.value,location,Number(amount.value),ethers.utils.parseEther(price.value.toString()).toString(),"selling").then((res)=>{
@@ -46,7 +79,7 @@ const addProduct = async ()=>{
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full ">
         <div v-if="newProductModelOpen"
             @click="closeOverlay()"
             class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-10">
@@ -58,18 +91,23 @@ const addProduct = async ()=>{
 
                 <div class="flex flex-col mb-5"> 
                     <h1 class="border-b border-gray-400 text-xl text-gray-600 font-semibold mb-4">POST NEW PRODUCT DETAILS</h1>
-
+                    
                     <div class="flex flex-col space-y-4">
-                            <div>
-                                <label class="text-gray-600" for="productType">Product Type</label>
-                                <!-- Styled Select -->
-                                <select v-model="productType" id="productType" class="block w-1/2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200">
-                                    <!-- Options -->
-                                    <option value="Cashewnut">Cashewnut</option>
-                                    <option value="Maize">Maize</option>
-                                    <option value="Beans">Beans</option>
-                                    <option value="Rice">Rice</option>
-                                </select>
+                            <div class="flex flex-row">
+                                    <div class="w-1/2">
+                                        <label class="text-gray-600" for="productType">Product Type</label>
+                                        <!-- Styled Select -->
+                                        <select v-model="productType" id="productType" class="block w-3/4 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-blue-300 focus:ring focus:ring-blue-200">
+                                            <!-- Options -->
+                                            <option value="Cashewnut">Cashewnut</option>
+                                            <option value="Maize">Maize</option>
+                                            <option value="Beans">Beans</option>
+                                            <option value="Rice">Rice</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-end text-lg text-blue-700">
+                                        <p v-if="productType ">SET PRICE IS FROM {{ setPrice.min }} TO {{ setPrice.max }}</p>
+                                    </div>
                             </div>
                             <div class="grid grid-cols-2 space-x-4">
                                 <div class="col-span-1 flex flex-row space-x-4">
@@ -130,13 +168,13 @@ const addProduct = async ()=>{
            <nav class="w-full">
                 <div class="space-x-8 mx-1  font-mono grid grid-cols-4 text-gray-700">
                     <div class="col-span-1 flex flex-col">
-                        <div class="h-full w-full bg-[#84b942] bg-opacity-10 min-h-2/3 space-y-4 p-4">
+                                  <nav class="h-full w-full bg-[#84b942] bg-opacity-10 min-h-2/3 space-y-4 p-4">
                             <div class="h-36 border-b-2 border-white text-lg font-bold flex flex-col justify-center items-center">
                                 <span class="material-symbols-outlined text-6xl">
                                     account_circle
                                 </span>
-                                <h1>Pius Baraka</h1>
-                
+                                <h1>{{loggedinUser.name}}</h1>
+    
                             </div>    
                             <div
                             :class="{'text-[#84b942]':useRoute().name == 'myAccount'}"
@@ -144,12 +182,11 @@ const addProduct = async ()=>{
                                 <router-link to="/myAccount">ACCOUNT INFORMATION</router-link>
                             </div>
                             <div 
-                            :class="{'text-[#84b942]':useRoute().name == 'bought' || useRoute().name == 'sold' ||useRoute().name == 'onSale' }"
-                            class="h-16 border-b-2 border-white text-lg  flex items-center justify-center">
+                            :class="{'text-[#84b942]':useRoute().name == 'bought' || useRoute().name == 'sold' ||useRoute().name == 'onSale' }"                            class="h-16 border-b-2 border-white text-lg  flex items-center justify-center">
                                 <router-link to="/mydeals">MY DEALS</router-link>
                             </div>
                          
-                        </div>
+                        </nav>
                     </div>
 
                     <div class="col-span-3 flex flex-col">

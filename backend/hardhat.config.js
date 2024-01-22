@@ -10,7 +10,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
 module.exports =  {
   solidity: "0.8.19",
   networks: {
-    localhost: {
+    LOCALHOST: {
       url: HARDHAT_URL,
       accounts:  [PRIVATE_KEY],
     }

@@ -82,16 +82,16 @@
                    
                 </nav>
                 <div class=" w-full flex  bg-dark-overlay bg-cover bg-center h-[calc(100vh-56px)]">
-                   
-                        <router-view ></router-view>
-                    
+                   <div class="w-full h-full bg-slate-100 bg-opacity-80">
+                    <router-view ></router-view>     
+                   </div>
+                     
                 </div>
               
             </div>
           
         </div>
 
-        
     </div>
 </template>
 
@@ -106,6 +106,6 @@ transition: width 0.3s ease-in-out; /* Use transition for smoother animation */
     color:#319b77
 }
 .bg-dark-overlay {
-  background-image: url('../../images/cashew1.jpg'); /* Replace with your image path */
+  background-image: url('../../images/rice3.jpg'); /* Replace with your image path */
 }
 </style>

@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import {abi} from "./contract/LimaKijanja.json"
 
 //CONTRACT AND WALLET RELATED
-const contractAddress = "0xdbC43Ba45381e02825b14322cDdd15eC4B3164E6"
+const contractAddress = "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690"
 
 export const getProvider = () => {
     return new ethers.providers.Web3Provider(window.ethereum) ;

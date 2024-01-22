@@ -12,6 +12,7 @@ import userAccountVue from "@/views/user/userAccount.vue"
 import BoughtProductsVue from "@/components/BoughtProducts.vue"
 import SoldProductsVue from "@/components/SoldProducts.vue"
 import onSaleProductsVue from "@/components/onSaleProducts.vue"
+import { getState } from "@/utils"
 
 const routes = [
     {
@@ -38,6 +39,8 @@ const routes = [
                 name:"myDeals",
                 path:"/mydeals",
                 component:userDealsVue,
+
+                meta: { requiresMetaMask: true },
                 children:[
                     {
                         name:"bought",
@@ -62,7 +65,8 @@ const routes = [
             {
                 name:"myAccount",
                 path:"/myaccount",
-                component:userAccountVue
+                component:userAccountVue,
+                meta: { requiresMetaMask: true },
             }
         ]
     },
@@ -70,6 +74,8 @@ const routes = [
         name : "admin",
         path: "/admin",
         component: AdminDashboard,
+        meta: { requiresMetaMask: true },
+
         children:[
             {
                 name:"activity",
@@ -98,13 +104,13 @@ const router=createRouter({
 
 router.beforeEach((to,from, next) => {
     // to and from are both route objects. must call `next`.
-    if(to.meta.requiresAuth && !localStorage.getItem('token')){
+    if(to.meta.requiresMetaMask && !getState()){
         //if it requires auth and theres no token
-        next('/login');
+        next('/');
+        alert("get Metamask & CONNECT!")
         return;
     }
   
     next()
 })
-
 export default router

@@ -10,7 +10,7 @@ contract LimaKijanja {
         string email;
         string phoneNumber;
         string location;
-        address payable walletAddress;
+        address walletAddress;
     }  
 
     struct LoginInfo{
@@ -23,7 +23,7 @@ contract LimaKijanja {
         string productDescription;
         uint256 kilograms;
         uint256 price;
-        address payable owner;
+        address owner;
         string tag;
     }
 
@@ -94,7 +94,7 @@ contract LimaKijanja {
             productDescription: _productDescription,
             kilograms: _kilograms,
             price: _price,
-            owner: payable(msg.sender),
+            owner: msg.sender,
             tag: _tag
         });
         productrArray.push(myproduct);
@@ -112,7 +112,7 @@ contract LimaKijanja {
         string memory _email,
         string memory _phoneNumber,
         string memory _location,
-        address payable _walletAddress
+        address _walletAddress
     ) public onlyOwner{
         User memory newUser  = User({
             name : _name,
@@ -157,36 +157,67 @@ contract LimaKijanja {
     }
 
 
-    function buyProduct(
-    address payable  _owner,
-    uint256 _kilograms
-    ) public  payable onlyUSer{
+    // function buyProduct(
+    // address payable  _owner,
+    // uint256 _kilograms
+    // ) public  payable onlyUSer{
 
+    // require(_kilograms <= Productsmapping[_owner].kilograms, "Invalid amount to buy");
+    // require(_owner != address(0), "Invalid recipient address");
+
+    // // Deduct the amount to be bought from the original amount uploaded by the owner
+    // Productsmapping[_owner].kilograms -= _kilograms;
+
+    // // Update the product array with the remaining amount
+    // for (uint256 i = 0; i < productrArray.length; i++) {
+    //     if (productrArray[i].owner == _owner) {
+    //         productrArray[i].kilograms = Productsmapping[_owner].kilograms;
+    //     }
+    // }
+
+    // // Calculate the total cost for buying the product
+    // uint256 totalPrice = _kilograms * Productsmapping[_owner].price;
+    // //returnTotalPrice(totalPrice);
+    // //return totalPrice;
+
+    // require(totalPrice >= _kilograms * Productsmapping[_owner].price, "Insufficient funds");
+    // // Transfer the total price from the buyer's address to the owner's address
+    // _owner.transfer(totalPrice);
+
+    // // Record the transaction
+    // recordTransaction(msg.sender, "Buy Product", Productsmapping[_owner].productName);
+    // }
+
+
+
+
+function buyProduct(address payable _owner, uint256 _kilograms) public payable {
     require(_kilograms <= Productsmapping[_owner].kilograms, "Invalid amount to buy");
     require(_owner != address(0), "Invalid recipient address");
+    require(msg.sender.balance >= _kilograms * Productsmapping[_owner].price, "Insufficient funds");
 
-    // Deduct the amount to be bought from the original amount uploaded by the owner
+    // Deduct the purchased kilograms from the original amount uploaded by the owner
     Productsmapping[_owner].kilograms -= _kilograms;
 
     // Update the product array with the remaining amount
     for (uint256 i = 0; i < productrArray.length; i++) {
         if (productrArray[i].owner == _owner) {
             productrArray[i].kilograms = Productsmapping[_owner].kilograms;
+            break;
         }
     }
 
     // Calculate the total cost for buying the product
     uint256 totalPrice = _kilograms * Productsmapping[_owner].price;
-    //returnTotalPrice(totalPrice);
-    //return totalPrice;
+    totalPrice *= 1 ether;
 
-    require(totalPrice >= _kilograms * Productsmapping[_owner].price, "Insufficient funds");
     // Transfer the total price from the buyer's address to the owner's address
-    _owner.transfer(totalPrice);
+    payable(_owner).transfer(totalPrice);
 
     // Record the transaction
     recordTransaction(msg.sender, "Buy Product", Productsmapping[_owner].productName);
-    }
+}
+
 
 function returnTotalPrice(address _owner, uint256 _kilograms) public view returns (uint256) {
     // require(_kilograms <= Productsmapping[_owner].kilograms, "Invalid amount to buy");
@@ -229,7 +260,7 @@ function returnTotalPrice(address _owner, uint256 _kilograms) public view return
     return productPricemapping[_product];
 }
 
-      function Login(address _userAddress) public view returns (string memory) {
+    function Login(address _userAddress) public view returns (string memory) {
             return loginmapping[_userAddress].userType;
         }
 

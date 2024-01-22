@@ -17,8 +17,7 @@
 
     const getUsers = async ()=>{
         const { contract  } = await getSignerContract()
-        const users=  await contract.getAllUsers()
-        data2.value  = users;
+        data2.value =  await contract.getAllUsers()
     }
     const data=[
         {
@@ -73,12 +72,11 @@ const addUser = async ()=>{
         getUsers();
         isOpen.value = false;
     })
-    
 }
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full bg-[#84b942] bg-opacity-10">
             <div v-if="isOpen"
             @click="closeOverlay()"
             class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-10">
@@ -166,7 +164,7 @@ const addUser = async ()=>{
             </div>
         </div>
 
-        <div class=" w-full h-full flex flex-col mt-6">
+        <div class=" w-full h-full flex flex-col">
             <div class="mx-auto w-2/3">
                 <div class="mx-auto flex justify-end mb-2">
                     <button @click="openOverlay()" class="border border-[#84b942] bg-white text-[#84b942] p-1 rounded-md hover:border-2 hover:text-[#9cdb4e] hover:shadow-md hover:p-2 transition-all duration-300">ADD USER</button>

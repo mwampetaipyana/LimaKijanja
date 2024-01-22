@@ -12,6 +12,7 @@
         productEdited.value = ref('')
         isOpen.value = false;
     }
+    watch(isOpen, ()=>getPrices())
 
     const openModel = (product)=> {
         productEdited.value = product;
@@ -69,7 +70,7 @@
         }
 </script>
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full bg-[#84b942] bg-opacity-10 p-8">
         <div v-if="isOpen"
         @click="closeOverlay()"
         class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-10">
@@ -110,7 +111,7 @@
      </div>
 
 
-    <div class="bg-white w-2/3 my-5 flex mx-auto p-5 rounded-md ">
+    <div class="bg-white w-2/3 flex mx-auto p-5 rounded-md">
         <div class="flex flex-col w-full space-y-4">
                 <h1 class="border-b border-gray-400 text-gray-600 text-xl font-semibold " >Products List</h1>
                 <div class="w-full flex justify-between p-3 border rounded-sm border-blue-500">

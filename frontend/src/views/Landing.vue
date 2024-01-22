@@ -1,10 +1,11 @@
 <script setup>
     import {useRoute, useRouter} from "vue-router";
-    import { getSignerContract,setState,resetState, getViewerContract } from '../utils';
+    import { getSignerContract,setState,resetState, getViewerContract, getState } from '../utils';
     import { ref } from "vue";
-
     const router = useRouter();
-    const LoggedIn = ref(false);
+  
+    const LoggedIn = ref(Boolean(getState()))
+ 
 
     const  Login = async ()=> {
     const { signer } = await getSignerContract()
@@ -22,8 +23,9 @@
        }
 
        else if(userType === "user"){
-        setState({signer:signerAddress, status:true});
-        LoggedIn.value = true;
+        await setState({signer:signerAddress, status:true});
+        LoggedIn.value = getState()
+        router.push("/")
        }
 
        else {
@@ -93,7 +95,7 @@
             <div class="col-span-1"></div>
         </nav>
 
-        <div class="pt-2 bg-white font-sans grid grid-cols-6 border-b-4 border-[#6a9441]">
+        <div class="pt-2 bg-white font-sans grid grid-cols-6 border-b-4 border-[#6a9441] sticky top-8">
             <div class="col-span-1"></div>
 
             <div class="flex col-span-4 justify-between ">
@@ -120,11 +122,8 @@
             <div class="col-span-1 "></div>
         </div>
       
-        <router-view></router-view>
+        <router-view ></router-view>
 
-        <footer
-
-         class="fixed bottom-0 w-full mx-auto flex justify-center"><p class="font-mono ">MADE BY CSDFE-GROUP ## MEMBERS.</p></footer>
     </div>
   
 </template>

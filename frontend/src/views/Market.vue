@@ -8,19 +8,6 @@
     })
     
 
-let send = async () => {
-        const { contract  } = await getViewerContract()
-
-        const Products =await contract.viewProducts().catch((err)=>{
-            console.log('Error : ', err);
-        });
-
-        display.value=false
-    }
-
-    let cancel=()=>{
-         router.push('/')
-    }
 
     const TranscationModelOpen = ref(false);
 
@@ -40,16 +27,14 @@ let send = async () => {
         productToBuy.value = product;
         const { contract  } = await getSignerContract()
         contract.getUserInfo(product.owner).then((res)=>{
-        console.log(res);
         sellerDetails.value = res;
     })}
     const amountToBuy = ref('')
     const total = ref('')
 
     const buyProduct = async ()=> {
-        const { contract  } = await getSignerContract()
-        contract.buyProduct(sellerDetails.value.walletAddress,amountToBuy.value).then((res)=>{
-        console.log(res);
+        const { contract  } = await getViewerContract()
+        contract.buyProduct(sellerDetails.value.walletAddress,Number(amountToBuy.value)).catch((res)=>{
        })
     }
 
@@ -61,7 +46,6 @@ let send = async () => {
                 console.log('Error : ', err); return
             });
             total.value = ethers.utils.formatEther(totalCalculated).toString()
-            console.log(total.value)
         }
             
     });
@@ -92,10 +76,7 @@ let send = async () => {
    const filterProducts = (event, _type) => {
       
         if(event.target.value.toLowerCase() == 'all'){
-            filteringObject.value.location = ''
             filteringObject.value.productName=''
-            filteringObject.value.price=''
-           
         }
         else{
             switch (_type) {
@@ -116,8 +97,7 @@ let send = async () => {
                 break;
         }
         }
-     
-        
+
         postsDisplayed.value = products.value.filter(product =>
         product.productName.toLowerCase().includes(filteringObject.value.productName) &&
         product.productDescription.toLowerCase().includes(filteringObject.value.location) &&
@@ -134,7 +114,6 @@ let send = async () => {
             console.log('Error : ', err);
             invalid.value=true
         })
-        console.log(products.value);
         postsDisplayed.value = products.value;
 
     }
@@ -142,7 +121,7 @@ let send = async () => {
 </script>
 
 <template>
-    <div class="w-full h-full">
+    <div class="w-full h-full ">
         <div v-if="TranscationModelOpen"
         @click="closeOverlay()"
         class="fixed z-10 top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
@@ -208,17 +187,21 @@ let send = async () => {
         </div>
     </div>
 
-    <div class="grid grid-cols-6 my-20">
+    <div class="grid grid-cols-6 my-20 ">
         <div class="col-span-1"></div>
 
         <div class="col-span-4">
            <nav class="w-full">
                 <div class="space-x-8 mx-1  font-mono grid grid-cols-4 text-gray-700">
-                    <div class="col-span-1 flex flex-col">
-                        <div class="p-1 text-xl text-bold">
-                            <h1>CHARACTERISTICS</h1>
+                    <div class="col-span-1 flex flex-col ">
+                        <div class="p-1 text-xl flex flex-row space-x-2 text-bold ">
+                            <span class="material-symbols-outlined">
+                               tune
+                            </span>
+                            <h1>FILTER</h1>
                         </div>
-                        <div class="h-full w-full bg-[#84b942] bg-opacity-10 min-h-2/3 space-y-4 p-4">
+
+                        <div class="h-full w-full bg-[#84b942] bg-opacity-20 min-h-2/3 space-y-4 p-4 flex-shrink-0">
                                
                             <div class="relative inline-block text-left">
                                 <label class="text-gray-600" for="productType">Product Type</label>
@@ -260,27 +243,29 @@ let send = async () => {
                         </div>
                     </div>
 
-                    <div v-if="postsDisplayed.length > 0 " class="col-span-3 flex flex-col">
+                    <div v-if="postsDisplayed.length > 0 " class="col-span-3 flex flex-col flex-grow ">
                         <div class="p-1 text-xl text-bold">
                             <h1>OFFERS BY SELLERS</h1>
                         </div>
 
-                        <div v-for="(product, index) in postsDisplayed" :key="index"   class="space-y-4 bg-[#84b942] bg-opacity-5 p-3 text-md ">
-                            <div class="w-full px-auto flex justify-between p-2 border border-blue-600 rounded-lg hover:shadow-md">
-                                <div class="">
-                                    <p class="underline">{{product.productName}}</p>
-                                    <p class="text-blue-600"> {{ ethers.utils.formatEther(product.price).toString() }} Coins/kg</p>
-                                    <p class="">{{ product.kilograms }}kgs Available </p>
-                                    <p class="font-bold">At {{product.productDescription}}</p>
-                                    <p class="font-bold text-green-700">Posted By {{product.owner}}</p>
-                                </div>  
+                        <div class="h-[480px] overflow-y-auto">
+                            <div v-for="(product, index) in postsDisplayed" :key="index"   class="space-y-4 bg-[#84b942] bg-opacity-10 p-3 text-md ">
+                                <div class="w-full px-auto flex justify-between p-2 border border-blue-600 rounded-lg hover:shadow-md">
+                                    <div class="">
+                                        <p class="underline">{{product.productName}}</p>
+                                        <p class="text-blue-600"> {{ ethers.utils.formatEther(product.price).toString() }} Coins/kg</p>
+                                        <p class="">{{ product.kilograms }}kgs Available </p>
+                                        <p class="font-bold">At {{product.productDescription}}</p>
+                                        <p class="font-bold text-green-700">Posted By {{product.owner}}</p>
+                                    </div>  
 
-                                <div class="flex items-end">
-                                    <button @click="getDetails(product)" class="border border-[#84b942] text-[#84b942] p-1 rounded-md hover:text-[#9cdb4e] hover:shadow-md hover:p-2 transition-all duration-300">View Details</button>
+                                    <div class="flex items-end">
+                                        <button @click="getDetails(product)" class="border border-[#84b942] text-[#84b942] p-1 rounded-md hover:text-[#9cdb4e] hover:shadow-md hover:p-2 transition-all duration-300">View Details</button>
+                                    </div>
                                 </div>
                              </div>
-                            
                         </div>
+                      
                    
                     </div>
                     <div v-else class="col-span-3 flex flex-col min-h-30">
@@ -288,7 +273,7 @@ let send = async () => {
                             <h1>OFFERS BY SELLERS</h1>
                         </div>
 
-                        <div class="bg-[#84b942] bg-opacity-5 h-full flex items-center justify-center">
+                        <div class="bg-[#84b942] bg-opacity-10 h-full flex items-center justify-center">
                             <h1 class="text-2xl text-blue-700">NO POSTS...</h1>
                         </div>
                     </div>
@@ -302,3 +287,11 @@ let send = async () => {
     </div>
  
 </template>
+
+<style scoped>
+.back-to-back {
+  background-image: url('../images/rice3.jpg'); /* Replace with your image path */
+}
+
+
+</style>
