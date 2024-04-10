@@ -1,10 +1,10 @@
 # LimaKijanja
-Project Description
+`Project Description`
 LimaKijanja is a platform designed to bridge the gap between farmers and buyers in the agricultural market. 
 The system facilitates the process of farmers posting their crops with set prices and buyers being able to view these products. 
 Additionally, there are regulatory measures in place to define price ranges. Payment transactions are conducted directly between farmers and buyers using cryptocurrency.
 
-#Features
+`Features`
  1. Farmers Posting Crops: Farmers can post details of their crops along with the set prices they wish to sell them for.
  2. Buyer Access: Buyers have access to view the posted crops and their respective prices.
  3. Regulatory Price Ranges: A regulatory authority defines price ranges to ensure fairness and stability within the market.
